@@ -678,8 +678,8 @@ def read_tydi_examples(input_file, is_training, max_passages, max_position,
     fail_on_invalid: Should we immediately stop processing if an error is
       encountered?
     open_fn: A function that returns a file object given a path. Usually
-      `tf_io.open`; could be standard Python `open` if using this module outside
-      Tensorflow.
+      `tf_io.gopen`; could be standard Python `open` if using this module
+      outside Tensorflow.
 
   Returns:
     List of `TyDiExample`s.

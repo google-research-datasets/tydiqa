@@ -143,13 +143,16 @@ def get_first_annotation(json_dict, max_passages):
       particular passage's plaintext, not the full plaintext.
   """
 
+  if "annotations" not in json_dict:
+    return None, -1, (-1, -1)
+
   positive_annotations = sorted(
       [a for a in json_dict["annotations"] if has_passage_answer(a)],
       key=lambda a: a["passage_answer"]["candidate_index"])
 
   for a in positive_annotations:
     if a["minimal_answer"]:
-      # check if it is a non null answer.
+      # Check if it is a non null answer.
       start_byte_offset = a["minimal_answer"]["plaintext_start_byte"]
       if start_byte_offset < 0:
         continue

@@ -198,9 +198,9 @@ class CreateTFExampleFn(object):
 
 
 def gopen(path):
-  """Opens a file object given a `path`."""
+  """Opens a file object given a (possibly gzipped) `path`."""
   tf.logging.info("*** Loading from: %s ***", path)
-  if path.endswith(".gz") or ".gz" in path:
-    return gzip.GzipFile(fileobj=tf.gfile.Open(path, "r"))  # pytype: disable=wrong-arg-types
+  if ".gz" in path:
+    return gzip.GzipFile(fileobj=tf.gfile.Open(path, "rb"))  # pytype: disable=wrong-arg-types
   else:
     return tf.gfile.Open(path, "r")

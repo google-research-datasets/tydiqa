@@ -300,7 +300,7 @@ def read_annotation_from_file(input_file):
 
 def read_annotation(path_name):
   """Read annotations from path_name."""
-  if 'gz' in path_name:
+  if '.gz' in path_name:
     logging.info('Parsing %s (gzip)...', path_name)
     with gzip.GzipFile(path_name, 'r') as input_file:
       return read_annotation_from_file(input_file)

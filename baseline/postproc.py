@@ -225,7 +225,9 @@ def compute_pred_dict(candidates_dict, dev_features, raw_results,
 
   # Join examples with features and raw results.
   eval_examples = []
-  merged = sorted(examples_by_id + raw_results_by_id + features_by_id)
+  merged = sorted(
+      examples_by_id + raw_results_by_id + features_by_id,
+      key=lambda pair: pair[0])
 
   # Error counters
   num_missing_passage_predictions = 0

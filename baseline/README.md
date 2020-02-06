@@ -6,7 +6,7 @@ TyDi QA.
 The approach is nearly identical to the BERT baseline for the Natural Questions
 as described in [https://arxiv.org/abs/1901.08634]. Initial quality measurements
 for this system on TyDi QA are given in the
-[https://storage.cloud.google.com/tydiqa/tydiqa.pdf](TACL article).
+[TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf).
 
 ## Install
 
@@ -15,7 +15,7 @@ skip the pip install steps below if you already have these on your system:
 
 ```
 sudo apt install python3-dev python3-pip
-pip install --upgrade tensorflow
+pip3 install --upgrade tensorflow
 ```
 
 You'll probably also want a good GPU (or TPU) to efficiently run the model
@@ -30,13 +30,17 @@ wget https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-76
 
 ## Get the Data
 
-To get the data, see the instructions in [../README.md](README.md) in the main
-directory of this repository.
+To get the data, see the instructions in [../README.md] in the main directory of
+this repository.
 
 ## Prepare Data
 
 To run the TensorFlow baseline, we first have to process the data from its
 original JSONL format into tfrecord format. These steps use only CPU (no GPU).
+
+*You may wish to develop on a much smaller subset of the data. Because these are
+JSONL files, standard shell commands such as `head` will work fine for this
+purpose.*
 
 First, process the smaller dev set to make sure everything is working properly:
 
@@ -82,7 +86,7 @@ python3 run_tydi.py \
   --bert_config_file=mbert_dir/bert_config.json \
   --vocab_file=mbert_modified_vocab.txt \
   --init_checkpoint=mbert_dir/bert_model.ckpt \
-  --train_precomputed_file=train_samples/*.tfrecord \
+  --train_records_file=train_samples/*.tfrecord \
   --record_count_file=train_samples_record_count.txt \
   --do_train \
   --output_dir=~/tydiqa_baseline_model
@@ -97,7 +101,7 @@ python3 run_tydi.py \
   --bert_config_file=mbert_dir/bert_config.json \
   --vocab_file=mbert_modified_vocab.txt \
   --init_checkpoint=~/tydiqa_baseline_model \
-  --predict_json=tydiqa-v1.0-dev.jsonl.gz \
+  --predict_file=tydiqa-v1.0-dev.jsonl.gz \
   --precomputed_predict_file=dev_samples/*.tfrecord \
   --do_predict \
   --output_dir=~/tydiqa_baseline_model/predict \
@@ -110,8 +114,8 @@ checkpoint.
 
 ## Evaluate
 
-For evaluation, see the instructions in [../README.md](README.md) in the main
-directory of this repository for how to evaluate the primary tasks.
+For evaluation, see the instructions in [../README.md] in the main directory of
+this repository for how to evaluate the primary tasks.
 
 We encourage you to fine tune using multiple random seeds and average the
 results over these replicas to reading too much into optimization noise.
@@ -125,32 +129,32 @@ To help you get started in modifying the baseline system to incorporate your new
 idea -- or incorporating parts of the baseline system's code into your own
 system -- we provide an overview of how the code is organized:
 
-1.  \[data.py]: Responsible for deserializing the JSON and creating Pythonic
+1.  [data.py] - Responsible for deserializing the JSON and creating Pythonic
     data structures. *Usable by any ML framework / minimal tf dependencies (e.g.
     logging)*
 
-2.  \[tokenization.py]: Fork of BERT's tokenizer that tracks byte offsets.
+2.  [tokenization.py] - Fork of BERT's tokenizer that tracks byte offsets.
     *Usable by any ML framework / minimal tf dependencies (e.g. logging)*
 
-3.  \[preproc.py]: Calls tokenization and munges JSON into a format usable by
+3.  [preproc.py] - Calls tokenization and munges JSON into a format usable by
     the model. *Usable by any ML framework / minimal tf dependencies (e.g.
     logging)*
 
-4.  \[tf_io.py]: Tensorflow-specific IO code (reads `tf.Example`s from TF
+4.  [tf_io.py] - Tensorflow-specific IO code (reads `tf.Example`s from TF
     records). *If you'd like to use your own favorite DL framework, you'd need
     to modify this; it's only about 200 lines.*
 
-5.  \[tydi_modeling.py]: The core TensorFlow model code. **If you want to
+5.  [tydi_modeling.py] - The core TensorFlow model code. **If you want to
     replace BERT with your own latest and greatest, start here!** *Similarly, if
     you'd like to use your own favorite DL framework, this would be the only
     file that should require heavy modification; it's only about 200 lines.*
 
-6.  \[postproc.py]: Does postprocessing to find the answer, etc. Relevant only
+6.  [postproc.py] - Does postprocessing to find the answer, etc. Relevant only
     for inference (not used in training). *Usable by any ML framework with
     minimal edits. Has minimal tf dependencies (e.g. logging, plus a few tensor
     post-processing functions).*
 
-7.  \[run_tydi.py]: The main driver script that uses all of the above and calls
+7.  [run_tydi.py] - The main driver script that uses all of the above and calls
     Tensorflow to do the main training and inference loops.
 
 If you modify any of the preprocessing code, you may wish to enable verbose

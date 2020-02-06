@@ -18,6 +18,9 @@ generally you would:
 6.  Submit an official run to the TyDi QA leaderboard system. You may only do
     this once a week.
 
+**COMING SOON: The leaderboard submission system will be coming online in
+February 2020. The following steps are for use on that system.**
+
 ## Creating a Docker Container with Your Submission
 
 First, make sure that you have set up a profile as instructed on the
@@ -72,11 +75,14 @@ OUTPUT_PATH=$2
 # For example, to run the baseline system from:
 #  https://github.com/google-research-datasets/tydiqa/tree/master/baseline/run_tydi.py)
 
-python -m tydiqa.baseline.run_tydi
+python3 run_tydi.py \
   --predict_file=${INPUT_PATH} \
   --output_prediction_file=${OUTPUT_PATH} \
-  --init_checkpoint=<path_to_model_params_within_docker_image> \
-  --bert_config_file=<path_to_mbert_config_json_within_docker_image>
+  --output_dir=/tydiqa_model/output \
+  --init_checkpoint=/tydiqa_model/model/model.ckpt-* \
+  --bert_config_file=/tydiqa_model/model/bert_config.json \
+  --vocab_file=/tydiqa_model/model/modified_vocab.txt \
+  --do_predict
 ```
 
 When you upload your Docker image to the

@@ -73,7 +73,7 @@ flags.DEFINE_string(
     "The config json file corresponding to the pre-trained BERT model. "
     "This specifies the model architecture.")
 
-flags.DEFINE_string("vocab_file", "modified_vocab.txt",
+flags.DEFINE_string("vocab_file", None,
                     "The vocabulary file that the BERT model was trained on.")
 
 flags.DEFINE_string(
@@ -178,6 +178,11 @@ flags.DEFINE_integer(
 flags.DEFINE_integer(
     "max_position", 45,
     "Maximum passage position for which to generate special tokens.")
+
+flags.DEFINE_bool(
+    "fail_on_invalid", True,
+    "Stop immediately on encountering an invalid example? "
+    "If false, just print a warning and skip it.")
 
 
 ### TPU-specific flags:
@@ -387,7 +392,7 @@ def main(_):
         candidates_dict,
         eval_features, [r._asdict() for r in all_results],
         candidate_beam=FLAGS.candidate_beam)
-    predictions_json = {"predictions": tydi_pred_dict.values()}
+    predictions_json = {"predictions": list(tydi_pred_dict.values())}
     with tf.gfile.Open(FLAGS.output_prediction_file, "w") as f:
       json.dump(predictions_json, f, indent=4)
 
@@ -406,4 +411,4 @@ if __name__ == "__main__":
   flags.mark_flag_as_required("vocab_file")
   flags.mark_flag_as_required("bert_config_file")
   flags.mark_flag_as_required("output_dir")
-  tf.app.run()
+  tf.compat.v1.app.run()
