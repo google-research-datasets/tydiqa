@@ -189,7 +189,8 @@ examples of glossed examples with explanations (Figures 2 - 7).
 
 # Citation
 
-Please cite TyDi QA as:
+Please cite the
+[TyDi QA TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf) as:
 
 ```
 @article{tydiqa,
