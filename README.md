@@ -25,14 +25,14 @@ For a full description of the dataset, how it was collected, and the quality
 measurements for the baseline system, see the
 [TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf).
 
-# Choose a Task
+# The Tasks
 
 *   Primary tasks:
     *   **Passage selection task (SelectP):** Given a list of the passages in
         the article, return either (a) the index of the passage that answers the
         question or (b) NULL if no such passage exists.
     *   **Minimal answer span task (MinSpan):** Given the full text of an
-        article, return one of (a) the begin end byte indices of the minimal
+        article, return one of (a) the start and end byte indices of the minimal
         span that completely answers the question; (b) YES or NO if the question
         requires a yes/no answer and we can draw a conclusion from the passage;
         (c) NULL if it is not possible to produce a minimal answer for this
@@ -101,7 +101,8 @@ makes it easier to run inference on the entire dev set in a single invocation.
 ## Primary Tasks (TyDiQA-SelectP and TyDiQA-MinSpan)
 
 We provide a baseline system based on multilingual BERT in this repo. Please see
-[baseline/README.md] for details on running and modifying that system. You may
+[baseline/README.md](baseline/README.md)
+for details on running and modifying that system. You may
 also find this code useful even if you plan to build a system from scratch as it
 is designed to be easily re-used.
 
@@ -111,7 +112,8 @@ Because the gold passage task has been simplified to fit the constraints of the
 SQuAD 1.1 setting, it can generally be swapped into any code that accepts SQuAD
 1.1 JSON inputs by simply changing a few file paths in your code. We provide an
 example of doing exactly this with the original/unmodified multilingual BERT
-reference implementation. See [gold_passage_baseline/README.md] for details.
+reference implementation. See
+[gold_passage_baseline/README.md](gold_passage_baseline/README.md) for details.
 
 # Evaluation
 
@@ -122,7 +124,7 @@ The predictions can be evaluated using a command like the following:
 ```
 python3 tydi_eval.py \
   --gold_path=small_gold_annotation.jsonl \
-  --prediction_path=sample_prediction.json
+  --predictions_path=sample_prediction.json
 ```
 
 This script computes language-wise F1 scores and then averages over languages,
@@ -137,7 +139,8 @@ prediction format that your model should output.
 
 For the gold passage task, we re-use the existing SQuAD 1.1 evaluation code to
 allow maximal re-use of existing pipelines. An example of calling the code for
-evaluation is in [gold_passage_baseline/eval_gold_passage_baseline.sh].
+evaluation is in
+[gold_passage_baseline/eval_gold_passage_baseline.sh](gold_passage_baseline/eval_gold_passage_baseline.sh).
 
 ```
 cd gold_passage_baseline
@@ -146,17 +149,19 @@ vim eval_gold_passage_baseline.sh  # Edit path to `TYDIQA_GOLDP_DIR`
 ```
 
 Note that for dev and test evaluation, each language is evaluated separately and
-the overall score is the average over non-English languages.
+the overall score is the average over languages, excluding English.
 
 # Leaderboard Submissions
 
 In addition to reporting results on the dev set in your own research articles,
-we also encourage you to submit to our public leaderboard, to create a record of
+we also encourage you to submit to our
+[public leaderboard](https://google-research-datasets.github.io/tydiqa),
+to create a record of
 your experiments. We believe leaderboard submissions serve two main purposes:
 
-i. to create an existence proof that such a result is **possible** under
+(a) to create an existence proof that such a result is **possible** under
 carefully isolated conditions (i.e. cheating, intentional or accidental is
-difficult) so that the community knows such a score is possible; and ii. to
+difficult) so that the community knows such a score is possible; and (b) to
 inform the community **how** the result was obtained. Toward this latter goal,
 we request that you submit a description (e.g. paper draft) of your submission
 and also answer a few "repoducibility questions" that let the community know if
@@ -165,7 +170,7 @@ it will be possible to reproduce and build on your result. These include:
 1.  Is there a research paper describing the system you are submitting? (The
     community benefits far more from knowing how to achieve a result than the
     fact that it exists.)
-2.  Is the source code for teh system you are submitting publicly available?
+2.  Is the source code for the system you are submitting publicly available?
     (Your results will be replicated and trusted more if the community can
     quickly and reliably reproduce your results).
 3.  Was the system you are submitting trained on any additional public data?
@@ -177,7 +182,7 @@ it will be possible to reproduce and build on your result. These include:
     the community does not know the details of the underlying model and data it
     was built on.)
 
-For step-by-step instructions on submitting, see [leaderboard.md].
+For step-by-step instructions on submitting, see [leaderboard.md](leaderboard.md).
 
 # Analyze Your Results
 
@@ -189,8 +194,7 @@ examples of glossed examples with explanations (Figures 2 - 7).
 
 # Citation
 
-Please cite the
-[TyDi QA TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf) as:
+Please cite TyDi QA as:
 
 ```
 @article{tydiqa,

@@ -1,15 +1,15 @@
 # Leaderboard Submissions
 
-These instructions assume you have a working system for the TyDi QA primary taks
-that you wish to submit to the TyDi QA leaderboard. To get up to this point,
-generally you would:
+These instructions assume you have a working system for the TyDi QA primary
+tasks that you wish to submit to the TyDi QA leaderboard. To get up to this
+point, generally you would:
 
 1.  Run the provided baseline system to sanity check that you can reproduce the
-    baseline results. [baseline/README.md]
+    baseline results. [baseline/README.md](baseline/README.md)
 2.  Modify the baseline system or your existing code to improve it.
-    [baseline/README.md]
+    [baseline/README.md](baseline/README.md)
 3.  Evaluate locally on the dev set to measure the quality of your system.
-    [README.md]
+    [README.md](README.md)
 4.  Package your code and fine-tuned model parameters into a Docker container
     and make it public via Google Cloud Storage, available for free
     (instructions in this file).

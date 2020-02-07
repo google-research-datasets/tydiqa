@@ -57,7 +57,7 @@ import json
 import os
 
 from bert import modeling as bert_modeling
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import postproc
 import preproc
 import tf_io
@@ -268,7 +268,7 @@ def main(_):
   num_train_steps = None
   num_warmup_steps = None
   if FLAGS.do_train:
-    with tf.io.gfile.GFile(FLAGS.record_count_file, "r") as f:
+    with tf.gfile.Open(FLAGS.record_count_file, "r") as f:
       num_train_features = int(f.read().strip())
     num_train_steps = int(num_train_features / FLAGS.train_batch_size *
                           FLAGS.num_train_epochs)
@@ -411,4 +411,4 @@ if __name__ == "__main__":
   flags.mark_flag_as_required("vocab_file")
   flags.mark_flag_as_required("bert_config_file")
   flags.mark_flag_as_required("output_dir")
-  tf.compat.v1.app.run()
+  tf.app.run()

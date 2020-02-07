@@ -25,7 +25,7 @@ import math
 import re
 import numpy as np
 import six
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.contrib import layers as contrib_layers
 
 
@@ -91,7 +91,7 @@ class BertConfig(object):
   @classmethod
   def from_json_file(cls, json_file):
     """Constructs a `BertConfig` from a json file of parameters."""
-    with tf.io.gfile.GFile(json_file, "r") as reader:
+    with tf.gfile.Open(json_file, "r") as reader:
       text = reader.read()
     return cls.from_dict(json.loads(text))
 

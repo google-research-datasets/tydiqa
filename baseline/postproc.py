@@ -130,7 +130,7 @@ def compute_predictions(eval_example, candidate_beam):
     return None
 
   score, summary, language_name, start_span, end_span = sorted(
-      predictions, reverse=True)[0]
+      predictions, key=lambda x: x[0], reverse=True)[0]
   minimal_span = Span(start_span, end_span)
   passage_span_index = None
   for c_ind, c in enumerate(eval_example.candidates):
