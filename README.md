@@ -75,21 +75,16 @@ the following URLs.
 
 For the primary tasks:
 
-```
-wget https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz
-wget https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz
-```
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz)
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz)
 
 The primary task training set is about 1.6GB while the dev set is about 150MB.
 
 For the gold passage task:
 
-```
-wget https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json
-wget https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json
-wget https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz
-tar -xvzf tydiqa-goldp-v1.0-dev.tgz
-```
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json)
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json)
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz)
 
 The gold passage training set is about 50MB and the dev set is about 10MB. The
 extra tarball for the dev set contains JSON files that are split along language
@@ -101,10 +96,9 @@ makes it easier to run inference on the entire dev set in a single invocation.
 ## Primary Tasks (TyDiQA-SelectP and TyDiQA-MinSpan)
 
 We provide a baseline system based on multilingual BERT in this repo. Please see
-[baseline/README.md](baseline/README.md)
-for details on running and modifying that system. You may
-also find this code useful even if you plan to build a system from scratch as it
-is designed to be easily re-used.
+[baseline/README.md](baseline/README.md) for details on running and modifying
+that system. You may also find this code useful even if you plan to build a
+system from scratch as it is designed to be easily re-used.
 
 ## Gold Passage Task (TyDiQA-GoldP)
 
@@ -155,9 +149,9 @@ the overall score is the average over languages, excluding English.
 
 In addition to reporting results on the dev set in your own research articles,
 we also encourage you to submit to our
-[public leaderboard](https://google-research-datasets.github.io/tydiqa),
-to create a record of
-your experiments. We believe leaderboard submissions serve two main purposes:
+[public leaderboard](https://google-research-datasets.github.io/tydiqa), to
+create a record of your experiments. We believe leaderboard submissions serve
+two main purposes:
 
 (a) to create an existence proof that such a result is **possible** under
 carefully isolated conditions (i.e. cheating, intentional or accidental is
@@ -182,7 +176,13 @@ it will be possible to reproduce and build on your result. These include:
     the community does not know the details of the underlying model and data it
     was built on.)
 
-For step-by-step instructions on submitting, see [leaderboard.md](leaderboard.md).
+For step-by-step instructions on submitting, see
+[leaderboard.md](leaderboard.md).
+
+In addition to submitting to the leaderboard we encourage you to make both your
+source code and your Docker images public so that others can easily run
+inference with your system. This opens up the possibility of others (such as
+MT-focused researchers) building on top of (and citing!) your QA system.
 
 # Analyze Your Results
 
@@ -194,7 +194,8 @@ examples of glossed examples with explanations (Figures 2 - 7).
 
 # Citation
 
-Please cite TyDi QA as:
+Please cite the
+[TyDi QA TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf) as:
 
 ```
 @article{tydiqa,

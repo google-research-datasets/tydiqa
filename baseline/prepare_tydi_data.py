@@ -229,7 +229,7 @@ def main(_):
     for tf_example in tf_examples:
       writer.write(tf_example.SerializeToString())
   if FLAGS.record_count_file:
-    with tf.gfile.Open(FLAGS.record_count_file) as writer:
+    with tf.gfile.Open(FLAGS.record_count_file, "w") as writer:
       writer.write(str(num_features))
 
 

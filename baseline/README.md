@@ -15,7 +15,7 @@ skip the pip install steps below if you already have these on your system:
 
 ```
 sudo apt install python3-dev python3-pip
-pip3 install --upgrade tensorflow
+pip3 install --upgrade tensorflow-gpu
 ```
 
 You'll probably also want a good GPU (or TPU) to efficiently run the model
@@ -24,14 +24,12 @@ computations.
 Finally, download the latest multilingual BERT checkpoint, which will serve as a
 starting point for fine tuning:
 
-```
-wget https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip
-```
+[https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip](https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip)
 
 ## Get the Data
 
-To get the data, see the instructions in [../README.md] in the main directory of
-this repository.
+To get the data, see the instructions in [../README.md](../README.md) in the
+main directory of this repository.
 
 ## Prepare Data
 
@@ -58,7 +56,7 @@ debug logging (from `debug.py`) for the first few examples.
 Next, prepare the training samples:
 
 ```
-python3 prepare_tydy_data.py \
+python3 prepare_tydi_data.py \
   --input_jsonl=tydiqa-v1.0-train.jsonl.gz \
   --output_tfrecord=train_samples.tfrecord \
   --vocab_file=mbert_modified_vocab.txt \
@@ -114,8 +112,8 @@ checkpoint.
 
 ## Evaluate
 
-For evaluation, see the instructions in [../README.md] in the main directory of
-this repository for how to evaluate the primary tasks.
+For evaluation, see the instructions in [../README.md](../README.md) in the main
+directory of this repository for how to evaluate the primary tasks.
 
 We encourage you to fine tune using multiple random seeds and average the
 results over these replicas to reading too much into optimization noise.
@@ -130,15 +128,13 @@ idea -- or incorporating parts of the baseline system's code into your own
 system -- we provide an overview of how the code is organized:
 
 1.  [data.py] - Responsible for deserializing the JSON and creating Pythonic
-    data structures. *Usable by any ML framework / minimal tf dependencies (e.g.
-    logging)*
+    data structures. *Usable by any ML framework / no TF dependencies*
 
 2.  [tokenization.py] - Fork of BERT's tokenizer that tracks byte offsets.
-    *Usable by any ML framework / minimal tf dependencies (e.g. logging)*
+    *Usable by any ML framework / no TF dependencies*
 
 3.  [preproc.py] - Calls tokenization and munges JSON into a format usable by
-    the model. *Usable by any ML framework / minimal tf dependencies (e.g.
-    logging)*
+    the model. *Usable by any ML framework / no TF dependencies*
 
 4.  [tf_io.py] - Tensorflow-specific IO code (reads `tf.Example`s from TF
     records). *If you'd like to use your own favorite DL framework, you'd need
@@ -151,7 +147,7 @@ system -- we provide an overview of how the code is organized:
 
 6.  [postproc.py] - Does postprocessing to find the answer, etc. Relevant only
     for inference (not used in training). *Usable by any ML framework with
-    minimal edits. Has minimal tf dependencies (e.g. logging, plus a few tensor
+    minimal edits. Has minimal tf dependencies (e.g. a few tensor
     post-processing functions).*
 
 7.  [run_tydi.py] - The main driver script that uses all of the above and calls

@@ -19,7 +19,6 @@ favorite ML/DL framework.
 """
 
 import collections
-import re
 
 from absl import logging
 from bert import tokenization as bert_tokenization
@@ -285,9 +284,6 @@ class NonDestructiveWordpieceTokenizer(object):
 class TyDiTokenizer(object):
   """A BERT-compatible tokenizer that keeps byte indices."""
 
-  # A special token is made of non-space chars enclosed in square brackets.
-  _SPECIAL_TOKENS_RE = re.compile(r"^\[[^ ]*\]$", re.UNICODE)
-
   def __init__(self, vocab_file, fail_on_mismatch=False):
     self.vocab = bert_tokenization.load_vocab(vocab_file)
     self.tokenizer = NonDestructiveFullTokenizer(vocab_file=vocab_file)
@@ -393,7 +389,7 @@ class TyDiTokenizer(object):
                                                 berttok_wordpieces,
                                                 berttok_starts, berttok_limits):
       # If it is a special token (e.g. [UNK]), don't tokenize into wordpieces.
-      if TyDiTokenizer._SPECIAL_TOKENS_RE.match(token):
+      if self.is_special_token(token):
         vocab_id = self.get_vocab_id(token)
         # Iterate over the text byte offsets covered by this token and
         # associate each with this wordpice index.
@@ -432,16 +428,29 @@ class TyDiTokenizer(object):
     assert len(start_offsets_out) == len(end_offsets_out)
     return wordpieces_out, start_offsets_out, end_offsets_out, offset_to_wp_out
 
+  def is_special_token(self, token):
+    """Is this a special token reserved for BERT or TyDi QA modeling?"""
+
+    # NOTE: These must also be in the system's vocabulary file, which by default
+    # is `mbert_modified_vocab.txt`, which is the original mBERT vocabulary
+    # with some special tokens specific to our system added in the reserved
+    # (unused) vocabulary space.
+    special_tokens = set([
+        "[CLS]", "[SEP]", "[PAD]", "[Q]", "[YES]", "[NO]", "[NoLongAnswer]",
+        "[NoShortAnswer]", "[SA]", "[/SA]", "[UNK]", "[CLS]", "[SEP]", "[MASK]"
+    ])
+    if token in special_tokens:
+      return True
+    if token.startswith("[Paragraph=") or token.startswith("[ContextId="):
+      return True
+    return False
+
   def get_vocab_id(self, special_token):
     """Gets the vocab id of a `special_token`."""
     if special_token in self.vocab:
       return self.vocab[special_token]
     else:
-      # This *could* be something we really wanted to notice such as
-      # [ContextId=48]... or it could just be something silly such as
-      # [0].
-      logging.warn("Unrecognized special token: %s", special_token)
-      return -1
+      raise "Unrecognized special token: '{}'".format(special_token)
 
   def _flatten_inner(self, seq):
     """Creates a 2D nested list from 3D, squeezing the inner dims."""

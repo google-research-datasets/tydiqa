@@ -128,7 +128,7 @@ class RunTyDiTest(tf.test.TestCase):
   def _get_vocab_file(self):
     return os.path.join(FLAGS.test_srcdir,
                         ".//baseline",
-                        "modified_vocab.txt")
+                        "mbert_modified_vocab.txt")
 
   def test_offset_wp_mapping(self):
     """Test the mapping from wordpiece to plaintext offsets."""

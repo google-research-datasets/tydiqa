@@ -26,14 +26,14 @@
 Overview:
   1. data.py: Responsible for deserializing the JSON and creating Pythonic data
        structures
-     [ Usable by any ML framework / minimal tf dependencies (e.g. logging) ]
+     [ Usable by any ML framework / no TF dependencies ]
 
   2. tokenization.py: Fork of BERT's tokenizer that tracks byte offsets.
-     [ Usable by any ML framework / minimal tf dependencies (e.g. logging) ]
+     [ Usable by any ML framework / no TF dependencies ]
 
   3. preproc.py: Calls tokenization and munges JSON into a format usable by
        the model.
-     [ Usable by any ML framework / minimal tf dependencies (e.g. logging) ]
+     [ Usable by any ML framework / no TF dependencies ]
 
   4. tf_io.py: Tensorflow-specific IO code (reads `tf.Example`s from
        TF records). If you'd like to use your own favorite DL framework, you'd
@@ -47,7 +47,7 @@ Overview:
 
   5. postproc.py: Does postprocessing to find the answer, etc. Relevant only
      for inference.
-     [ Usable by any ML framework / minimal tf dependencies (e.g. logging) ]
+     [ Usable by any ML framework / minimal tf dependencies ]
 
   6. run_tydi.py: The actual main driver script that uses all of the above and
        calls Tensorflow to do the main training and inference loops.
@@ -315,6 +315,7 @@ def main(_):
       raise ValueError(
           "--output_prediction_file must be defined in predict mode.")
     if not FLAGS.precomputed_predict_file:
+      # `evan_tydi_examples` is a lazy generator.
       eval_tydi_examples = preproc.read_tydi_examples(
           input_file=FLAGS.predict_file,
           is_training=False,
@@ -332,7 +333,7 @@ def main(_):
         eval_writer.process_feature(feature)
 
       tf.logging.info("**** Converting examples.")
-      num_spans_to_ids = preproc.convert_examples_to_features(
+      num_spans_to_ids, num_examples = preproc.convert_examples_to_features(
           tydi_examples=eval_tydi_examples,
           vocab_file=FLAGS.vocab_file,
           is_training=False,
@@ -343,12 +344,12 @@ def main(_):
           output_fn=append_feature)
       eval_writer.close()
       eval_filename = eval_writer.filename
-      tf.logging.info("**** Conversting examples finished.")
+      tf.logging.info("**** Converting examples finished.")
 
       for spans, ids in num_spans_to_ids.items():
         tf.logging.info("  Num split into %d = %d", spans, len(ids))
       tf.logging.info("***** Running predictions *****")
-      tf.logging.info("  Num orig examples = %d", len(eval_tydi_examples))
+      tf.logging.info("  Num orig examples = %d", num_examples)
       eval_filenames = [eval_filename]
     else:
       eval_filenames = tf.gfile.Glob(FLAGS.precomputed_predict_file)
@@ -364,7 +365,7 @@ def main(_):
     for result in estimator.predict(
         predict_input_fn, yield_single_examples=True):
       if len(all_results) % 1000 == 0:
-        tf.logging.info("Processing example: %d" % (len(all_results)))
+        tf.logging.info("Processing example: %d", len(all_results))
       unique_id = int(result["unique_ids"])
       start_logits = [float(x) for x in result["start_logits"].flat]
       end_logits = [float(x) for x in result["end_logits"].flat]
@@ -378,15 +379,15 @@ def main(_):
 
     candidates_dict = read_candidates(FLAGS.predict_file)
 
-    tf.logging.info("Loaded candidates examples: %d" % (len(candidates_dict)))
+    tf.logging.info("Loaded candidates examples: %d", len(candidates_dict))
     eval_features = []
     tf.logging.info("Number of eval file shards: %d", len(eval_filenames))
     for eval_filename in eval_filenames:
       eval_features.extend([
           tf.train.Example.FromString(r)
           for r in tf.python_io.tf_record_iterator(eval_filename)])
-    tf.logging.info("Loaded eval features: %d" % (len(eval_features)))
-    tf.logging.info("Loaded results: %d" % (len(all_results)))
+    tf.logging.info("Loaded eval features: %d", len(eval_features))
+    tf.logging.info("Loaded results: %d", len(all_results))
 
     tydi_pred_dict = postproc.compute_pred_dict(
         candidates_dict,
