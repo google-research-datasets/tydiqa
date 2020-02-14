@@ -297,7 +297,7 @@ class InputFeatures(object):
 def convert_examples_to_features(tydi_examples, is_training, vocab_file,
                                  max_question_length, max_seq_length,
                                  doc_stride, include_unknowns, output_fn):
-  """Converts a list of `TyDiExample`s into `InputFeatures`.
+  """Converts `TyDiExample`s into `InputFeatures` and sends them to `output_fn`.
 
   Each entry is split into multiple `InputFeatures`, which contains windows
 
@@ -320,9 +320,9 @@ def convert_examples_to_features(tydi_examples, is_training, vocab_file,
       examples.
 
   Returns:
-  num_spans_to_id: a dictionary containing a mapping from number of features to
-    a list of example ids that has that number of features.
-  num_examples: Number of examples from the `tydi_examples` generator.
+    num_spans_to_id: a dictionary containing a mapping from number of features
+      to a list of example ids that has that number of features.
+    num_examples: Number of examples from the `tydi_examples` generator.
   """
   num_spans_to_ids = collections.defaultdict(list)
   tokenizer = tokenization.TyDiTokenizer(vocab_file=vocab_file)
@@ -689,6 +689,8 @@ def read_tydi_examples(input_file, is_training, max_passages, max_position,
     `TyDiExample`s
   """
   input_paths = glob.glob(input_file)
+  if not input_paths:
+    raise ValueError("No paths matching glob '{}'".format(input_file))
 
   non_valid_count = 0
   n = 0
@@ -711,6 +713,10 @@ def read_tydi_examples(input_file, is_training, max_passages, max_position,
           if fail_on_invalid:
             raise ValueError("Found invalid example.")
           non_valid_count += 1
+
+  if n == 0:
+    raise ValueError(
+        "No surviving examples from input_file '{}'".format(input_file))
 
   logging.info("*** # surviving examples %d ***", n)
   logging.info("*** # pruned examples %d ***", non_valid_count)

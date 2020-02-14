@@ -12,6 +12,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+# Lint as: python3
 """BERT-joint baseline for TyDi v1.0.
 
  This code is largely based on the Natural Questions baseline from
@@ -53,9 +54,11 @@ Overview:
        calls Tensorflow to do the main training and inference loops.
 """
 
+import collections
 import json
 import os
 
+from absl import logging
 from bert import modeling as bert_modeling
 import tensorflow.compat.v1 as tf
 import postproc
@@ -107,7 +110,7 @@ flags.DEFINE_string(
 flags.DEFINE_string(
     "output_prediction_file", None,
     "Where to print predictions in TyDi prediction format, to be passed to"
-    "tydi_eval.")
+    "tydi_eval.py.")
 
 flags.DEFINE_string(
     "init_checkpoint", None,
@@ -131,12 +134,17 @@ flags.DEFINE_integer(
 
 flags.DEFINE_bool("do_train", False, "Whether to run training.")
 
-flags.DEFINE_bool("do_predict", False, "Whether to run eval on the dev set.")
+flags.DEFINE_bool("do_predict", False, "Whether to run prediction.")
 
 flags.DEFINE_integer("train_batch_size", 16, "Total batch size for training.")
 
-flags.DEFINE_integer("predict_batch_size", 3000,
+flags.DEFINE_integer("predict_batch_size", 8,
                      "Total batch size for predictions.")
+
+flags.DEFINE_integer(
+    "predict_file_shard_size", 1000,
+    "The maximum number of examples to put into each temporary TF example file "
+    "used as model input a prediction time.")
 
 flags.DEFINE_float("learning_rate", 5e-5, "The initial learning rate for Adam.")
 
@@ -228,9 +236,12 @@ def validate_flags_or_throw(bert_config):
                        "must be specified.")
 
   if FLAGS.do_predict:
-    if not FLAGS.predict_file and not FLAGS.precomputed_predict_file:
-      raise ValueError(
-          "If `do_predict` is True, then `predict_file` must be specified.")
+    if not FLAGS.predict_file:
+      raise ValueError("If `do_predict` is True, "
+                       "then `predict_file` must be specified.")
+    if not FLAGS.output_prediction_file:
+      raise ValueError("If `do_predict` is True, "
+                       "then `output_prediction_file` must be specified.")
 
   if FLAGS.max_seq_length > bert_config.max_position_embeddings:
     raise ValueError(
@@ -245,7 +256,7 @@ def validate_flags_or_throw(bert_config):
 
 
 def main(_):
-  tf.logging.set_verbosity(tf.logging.INFO)
+  logging.set_verbosity(logging.INFO)
   bert_config = bert_modeling.BertConfig.from_json_file(FLAGS.bert_config_file)
   validate_flags_or_throw(bert_config)
   tf.gfile.MakeDirs(FLAGS.output_dir)
@@ -272,11 +283,11 @@ def main(_):
       num_train_features = int(f.read().strip())
     num_train_steps = int(num_train_features / FLAGS.train_batch_size *
                           FLAGS.num_train_epochs)
-    tf.logging.info("record_count_file: %s", FLAGS.record_count_file)
-    tf.logging.info("num_records (features): %d", num_train_features)
-    tf.logging.info("num_train_epochs: %d", FLAGS.num_train_epochs)
-    tf.logging.info("train_batch_size: %d", FLAGS.train_batch_size)
-    tf.logging.info("num_train_steps: %d", num_train_steps)
+    logging.info("record_count_file: %s", FLAGS.record_count_file)
+    logging.info("num_records (features): %d", num_train_features)
+    logging.info("num_train_epochs: %d", FLAGS.num_train_epochs)
+    logging.info("train_batch_size: %d", FLAGS.train_batch_size)
+    logging.info("num_train_steps: %d", num_train_steps)
 
     num_warmup_steps = int(num_train_steps * FLAGS.warmup_proportion)
 
@@ -298,104 +309,170 @@ def main(_):
       predict_batch_size=FLAGS.predict_batch_size)
 
   if FLAGS.do_train:
-    tf.logging.info("***** Running training on precomputed features *****")
-    tf.logging.info("  Num split examples = %d", num_train_features)
-    tf.logging.info("  Batch size = %d", FLAGS.train_batch_size)
-    tf.logging.info("  Num steps = %d", num_train_steps)
+    logging.info("Running training on precomputed features")
+    logging.info("  Num split examples = %d", num_train_features)
+    logging.info("  Batch size = %d", FLAGS.train_batch_size)
+    logging.info("  Num steps = %d", num_train_steps)
     train_filenames = tf.gfile.Glob(FLAGS.train_records_file)
     train_input_fn = tf_io.input_fn_builder(
         input_file=train_filenames,
         seq_length=FLAGS.max_seq_length,
         is_training=True,
         drop_remainder=True)
-
     estimator.train(input_fn=train_input_fn, max_steps=num_train_steps)
+
   if FLAGS.do_predict:
-    if not FLAGS.output_prediction_file:
-      raise ValueError(
-          "--output_prediction_file must be defined in predict mode.")
     if not FLAGS.precomputed_predict_file:
-      # `evan_tydi_examples` is a lazy generator.
-      eval_tydi_examples = preproc.read_tydi_examples(
+      predict_examples_iter = preproc.read_tydi_examples(
           input_file=FLAGS.predict_file,
           is_training=False,
           max_passages=FLAGS.max_passages,
           max_position=FLAGS.max_position,
           fail_on_invalid=FLAGS.fail_on_invalid,
           open_fn=tf_io.gopen)
-      eval_writer = tf_io.FeatureWriter(
-          filename=os.path.join(FLAGS.output_dir, "eval.tf_record"),
-          is_training=False)
-
-      eval_features = []
-      def append_feature(feature):
-        eval_features.append(feature)
-        eval_writer.process_feature(feature)
-
-      tf.logging.info("**** Converting examples.")
-      num_spans_to_ids, num_examples = preproc.convert_examples_to_features(
-          tydi_examples=eval_tydi_examples,
-          vocab_file=FLAGS.vocab_file,
-          is_training=False,
-          max_question_length=FLAGS.max_question_length,
-          max_seq_length=FLAGS.max_seq_length,
-          doc_stride=FLAGS.doc_stride,
-          include_unknowns=FLAGS.include_unknowns,
-          output_fn=append_feature)
-      eval_writer.close()
-      eval_filename = eval_writer.filename
-      tf.logging.info("**** Converting examples finished.")
-
-      for spans, ids in num_spans_to_ids.items():
-        tf.logging.info("  Num split into %d = %d", spans, len(ids))
-      tf.logging.info("***** Running predictions *****")
-      tf.logging.info("  Num orig examples = %d", num_examples)
-      eval_filenames = [eval_filename]
+      shards_iter = write_tf_feature_files(predict_examples_iter)
     else:
-      eval_filenames = tf.gfile.Glob(FLAGS.precomputed_predict_file)
+      # Uses zeros for example and feature counts since they're unknown, and
+      # we only use them for logging anyway.
+      shards_iter = enumerate(
+          ((f, 0, 0) for f in tf.gfile.Glob(FLAGS.precomputed_predict_file)), 1)
 
-    predict_input_fn = tf_io.input_fn_builder(
-        input_file=eval_filenames,
-        seq_length=FLAGS.max_seq_length,
-        is_training=False,
-        drop_remainder=False)
+    # Accumulates all of the prediction results to be written to the output.
+    full_tydi_pred_dict = {}
+    total_num_examples = 0
+    for shard_num, (shard_filename, shard_num_examples,
+                    shard_num_features) in shards_iter:
+      total_num_examples += shard_num_examples
+      logging.info(
+          "Shard %d: Running prediction for %s; %d examples, %d features.",
+          shard_num, shard_filename, shard_num_examples, shard_num_features)
 
-    # If running eval on the TPU, you will need to specify the number of steps.
-    all_results = []
-    for result in estimator.predict(
-        predict_input_fn, yield_single_examples=True):
-      if len(all_results) % 1000 == 0:
-        tf.logging.info("Processing example: %d", len(all_results))
-      unique_id = int(result["unique_ids"])
-      start_logits = [float(x) for x in result["start_logits"].flat]
-      end_logits = [float(x) for x in result["end_logits"].flat]
-      answer_type_logits = [float(x) for x in result["answer_type_logits"].flat]
-      all_results.append(
-          tydi_modeling.RawResult(
-              unique_id=unique_id,
-              start_logits=start_logits,
-              end_logits=end_logits,
-              answer_type_logits=answer_type_logits))
+      # Runs the model on the shard and store the individual results.
+      # If running predict on TPU, you will need to specify the number of steps.
+      predict_input_fn = tf_io.input_fn_builder(
+          input_file=[shard_filename],
+          seq_length=FLAGS.max_seq_length,
+          is_training=False,
+          drop_remainder=False)
+      all_results = []
+      for result in estimator.predict(
+          predict_input_fn, yield_single_examples=True):
+        if len(all_results) % 10000 == 0:
+          logging.info("Shard %d: Predicting for feature %d/%s", shard_num,
+                       len(all_results), shard_num_features)
+        unique_id = int(result["unique_ids"])
+        start_logits = [float(x) for x in result["start_logits"].flat]
+        end_logits = [float(x) for x in result["end_logits"].flat]
+        answer_type_logits = [
+            float(x) for x in result["answer_type_logits"].flat
+        ]
+        all_results.append(
+            tydi_modeling.RawResult(
+                unique_id=unique_id,
+                start_logits=start_logits,
+                end_logits=end_logits,
+                answer_type_logits=answer_type_logits))
 
-    candidates_dict = read_candidates(FLAGS.predict_file)
-
-    tf.logging.info("Loaded candidates examples: %d", len(candidates_dict))
-    eval_features = []
-    tf.logging.info("Number of eval file shards: %d", len(eval_filenames))
-    for eval_filename in eval_filenames:
-      eval_features.extend([
+      # Reads the prediction candidates from the (entire) prediction input file.
+      candidates_dict = read_candidates(FLAGS.predict_file)
+      predict_features = [
           tf.train.Example.FromString(r)
-          for r in tf.python_io.tf_record_iterator(eval_filename)])
-    tf.logging.info("Loaded eval features: %d", len(eval_features))
-    tf.logging.info("Loaded results: %d", len(all_results))
+          for r in tf.python_io.tf_record_iterator(shard_filename)
+      ]
+      logging.info("Shard %d: Post-processing predictions.", shard_num)
+      logging.info("  Num candidate examples loaded (includes all shards): %d",
+                   len(candidates_dict))
+      logging.info("  Num candidate features loaded: %d", len(predict_features))
+      logging.info("  Num prediction result features: %d", len(all_results))
+      logging.info("  Num shard features: %d", shard_num_features)
 
-    tydi_pred_dict = postproc.compute_pred_dict(
-        candidates_dict,
-        eval_features, [r._asdict() for r in all_results],
-        candidate_beam=FLAGS.candidate_beam)
-    predictions_json = {"predictions": list(tydi_pred_dict.values())}
-    with tf.gfile.Open(FLAGS.output_prediction_file, "w") as f:
-      json.dump(predictions_json, f, indent=4)
+      tydi_pred_dict = postproc.compute_pred_dict(
+          candidates_dict,
+          predict_features, [r._asdict() for r in all_results],
+          candidate_beam=FLAGS.candidate_beam)
+
+      logging.info("Shard %d: Post-processed predictions.", shard_num)
+      logging.info("  Num shard examples: %d", shard_num_examples)
+      logging.info("  Num post-processed results: %d", len(tydi_pred_dict))
+      if shard_num_examples != len(tydi_pred_dict):
+        logging.warning("  Num missing predictions: %d",
+                        shard_num_examples - len(tydi_pred_dict))
+      for key, value in tydi_pred_dict.items():
+        if key in full_tydi_pred_dict:
+          logging.warning("ERROR: '%s' already in full_tydi_pred_dict!", key)
+        full_tydi_pred_dict[key] = value
+
+    logging.info("Prediction finished for all shards.")
+    logging.info("  Total input examples: %d", total_num_examples)
+    logging.info("  Total output predictions: %d", len(full_tydi_pred_dict))
+
+    with tf.gfile.Open(FLAGS.output_prediction_file, "w") as output_file:
+      for prediction in full_tydi_pred_dict.values():
+        output_file.write((json.dumps(prediction) + "\n").encode())
+
+
+def write_tf_feature_files(tydi_examples_iter):
+  """Converts TyDi examples to features and writes them to files."""
+  logging.info("Converting examples started.")
+
+  total_feature_count_frequencies = collections.defaultdict(int)
+  total_num_examples = 0
+  total_num_features = 0
+  for shard_num, examples in enumerate(
+      sharded_iterator(tydi_examples_iter, FLAGS.predict_file_shard_size), 1):
+    features_writer = tf_io.FeatureWriter(
+        filename=os.path.join(FLAGS.output_dir,
+                              "features.tf_record-%03d" % shard_num),
+        is_training=False)
+    num_features_to_ids, shard_num_examples = (
+        preproc.convert_examples_to_features(
+            tydi_examples=examples,
+            vocab_file=FLAGS.vocab_file,
+            is_training=False,
+            max_question_length=FLAGS.max_question_length,
+            max_seq_length=FLAGS.max_seq_length,
+            doc_stride=FLAGS.doc_stride,
+            include_unknowns=FLAGS.include_unknowns,
+            output_fn=features_writer.process_feature))
+    features_writer.close()
+
+    if shard_num_examples == 0:
+      continue
+
+    shard_num_features = 0
+    for num_features, ids in num_features_to_ids.items():
+      shard_num_features += (num_features * len(ids))
+      total_feature_count_frequencies[num_features] += len(ids)
+    total_num_examples += shard_num_examples
+    total_num_features += shard_num_features
+    logging.info("Shard %d: Converted %d input examples into %d features.",
+                 shard_num, shard_num_examples, shard_num_features)
+    logging.info("  Total so far: %d input examples, %d features.",
+                 total_num_examples, total_num_features)
+    yield (shard_num, (features_writer.filename, shard_num_examples,
+                       shard_num_features))
+
+  logging.info("Converting examples finished.")
+  logging.info("  Total examples = %d", total_num_examples)
+  logging.info("  Total features = %d", total_num_features)
+  logging.info("  total_feature_count_frequencies = %s",
+               sorted(total_feature_count_frequencies.items()))
+
+
+def sharded_iterator(iterator, shard_size):
+  """Returns an iterator of iterators of at most size `shard_size`."""
+  exhaused = False
+  while not exhaused:
+
+    def shard():
+      for i, item in enumerate(iterator, 1):
+        yield item
+        if i == shard_size:
+          return
+      nonlocal exhaused
+      exhaused = True
+
+    yield shard()
 
 
 def read_candidates(input_pattern):

@@ -21,6 +21,7 @@ files via `tf.gfile`.
 import collections
 import gzip
 
+from absl import logging
 import tensorflow.compat.v1 as tf
 
 import data
@@ -199,7 +200,7 @@ class CreateTFExampleFn(object):
 
 def gopen(path):
   """Opens a file object given a (possibly gzipped) `path`."""
-  tf.logging.info("*** Loading from: %s ***", path)
+  logging.info("*** Loading from: %s ***", path)
   if ".gz" in path:
     return gzip.GzipFile(fileobj=tf.gfile.Open(path, "rb"))  # pytype: disable=wrong-arg-types
   else:

@@ -8,6 +8,16 @@ as described in [https://arxiv.org/abs/1901.08634]. Initial quality measurements
 for this system on TyDi QA are given in the
 [TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf).
 
+## Hardware Requirements
+
+This baseline fine tunes multilingual BERT (mBERT) and so has similar compute
+and memory requirements. Unlike BERT-base, mBERT requires 16 GB of GPU RAM. If
+you don't have this on your local GPU, there's two avenues you might consider:
+(1) grab some cycles on a cloud provider -- a Tesla T4 can be had for around
+$0.35/hr or (2) rewrite the model to use something a bit less resource intensive
+(you can still do good science and apples-to-apples comparisons using less
+resource-intensive models).
+
 ## Install
 
 This code runs on Python3. You'll also need the following libraries -- you can
@@ -103,7 +113,7 @@ python3 run_tydi.py \
   --precomputed_predict_file=dev_samples/*.tfrecord \
   --do_predict \
   --output_dir=~/tydiqa_baseline_model/predict \
-  --output_prediction_file=~/tydiqa_baseline_model/predict/pred.json
+  --output_prediction_file=~/tydiqa_baseline_model/predict/pred.jsonl
 ```
 
 NOTE: Make sure you correctly set the `--init_checkpoint` to point to your fine

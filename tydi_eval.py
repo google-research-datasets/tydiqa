@@ -23,7 +23,7 @@ task, the SQuAD-compatible gold Passage (GoldP) task.
 
   Example usage:
 
-  tydi_eval --gold_path=<path-to-gold-files> --predictions_path=<path_to_json>
+  tydi_eval --gold_path=<path-to-gold-files> --predictions_path=<path_to_jsonl>
 
   This will compute both the official byte-level F1 scores, recall@precision
   tables for both passage and minimal answers (if the optional answer scores are
@@ -35,22 +35,21 @@ task, the SQuAD-compatible gold Passage (GoldP) task.
   gold_path should point to a single N way annotated dev data in the
   original download format (gzipped jsonlines) or jsonlines.
 
-  predictions_path should point to a json file containing the predictions in
-  the format given below.
+  predictions_path should point to a jsonl file (one json object per line),
+  where each line contains the predictions in the format given below.
 
   ------------------------------------------------------------------------------
 
-  Prediction format:
+  Prediction format (written on multiple lines here for clarity, but each
+  prediction should be a single line in your output file):
 
-  {'predictions': [
-    {
-      'example_id': -2226525965842375672,
-      'passage_answer_index': 2,
-      'passage_answer_score': 13.5,
-      'minimal_answer': {'start_byte_offset': 64206, 'end_byte_offset': 64280},
-      'minimal_answer_score': 26.4,
-      'yes_no_answer': 'NONE'
-    }, ... ]
+  {
+    'example_id': -2226525965842375672,
+    'passage_answer_index': 2,
+    'passage_answer_score': 13.5,
+    'minimal_answer': {'start_byte_offset': 64206, 'end_byte_offset': 64280},
+    'minimal_answer_score': 26.4,
+    'yes_no_answer': 'NONE'
   }
 
   The prediction format mirrors the annotation format in defining each passage
@@ -99,7 +98,8 @@ flags.DEFINE_string(
     'multiple files, should be a glob '
     'pattern (e.g. "/path/to/files-*"')
 
-flags.DEFINE_string('predictions_path', None, 'Path to prediction JSON.')
+flags.DEFINE_string('predictions_path', None,
+                    'Path to JSONL file of predictions.')
 
 flags.DEFINE_bool('verbose', True,
                   'Print some sample predictions with its socres.')
@@ -146,7 +146,10 @@ def score_passage_answer(gold_label_list, pred_label,
   gold_has_answer = eval_utils.gold_has_passage_answer(
       gold_label_list, passage_non_null_threshold)
 
-  pred_has_answer = pred_label and (pred_label.passage_answer_index >= 0)
+  if pred_label is None:
+    return gold_has_answer, not gold_has_answer, False, 0
+
+  pred_has_answer = pred_label.passage_answer_index >= 0
 
   is_correct = False
   score = pred_label.passage_score
@@ -191,11 +194,13 @@ def score_minimal_answer(gold_label_list, pred_label,
   gold_has_answer = eval_utils.gold_has_minimal_answer(
       gold_label_list, minimal_non_null_threshold)
 
+  if pred_label is None:
+    return gold_has_answer, not gold_has_answer, (0, 0, 0), 0
+
   # There is a predicted minimal answer if the predicted minimal label span
   # is non-null or we have a specific predicted label (such as yes/no).
-  pred_has_answer = pred_label and (
-      (not pred_label.minimal_answer_span.is_null_span()) or
-      pred_label.yes_no_answer != 'none')
+  pred_has_answer = ((not pred_label.minimal_answer_span.is_null_span()) or
+                     pred_label.yes_no_answer != 'none')
 
   # score is optional.
   score = pred_label.minimal_score
@@ -240,8 +245,8 @@ def score_answers(gold_annotation_dict, pred_dict):
   """Scores all answers for all documents.
 
   Args:
-    gold_annotation_dict: a dict from example id to list of TyDiLabels.
-    pred_dict: a dict from example id to list of TyDiLabels.
+    gold_annotation_dict: a dict from example id to list of `TyDiLabel`s.
+    pred_dict: a dict from example id to list of `TyDiLabel`s.
 
   Returns:
     passage_answer_stats: List of scores for passage answers.
@@ -250,47 +255,52 @@ def score_answers(gold_annotation_dict, pred_dict):
   gold_id_set = set(gold_annotation_dict.keys())
   pred_id_set = set(pred_dict.keys())
 
-  diffs = gold_id_set.symmetric_difference(pred_id_set)
-  if diffs:
-    for missing_id in diffs:
-      logging.info('Missing id: %s', missing_id)
-    raise ValueError('ERROR: ids in annotations prediction not equal.')
+  unpredicted = gold_id_set - pred_id_set
+  unexpected = pred_id_set - gold_id_set
+  if unpredicted:
+    logging.warning('Predictions missing for %d examples.', len(unpredicted))
+    logging.info('  Missing ids: %s', sorted(unpredicted))
+  if unexpected:
+    logging.warning(
+        'Found predictions for %d examples that do not appear in the gold data.',
+        len(unexpected))
+    logging.info('  Unexpected ids: %s', sorted(unexpected))
 
   passage_answer_stats = []
   minimal_answer_stats = []
   example_count = 0
   for example_id in gold_id_set:
-    if example_id in pred_id_set:
-      example_count += 1
-      gold = gold_annotation_dict[example_id]
-      pred = pred_dict[example_id]
-      passage_answer_stats.append(
-          score_passage_answer(gold, pred, FLAGS.passage_non_null_threshold))
-      minimal_answer_stats.append(
-          score_minimal_answer(gold, pred, FLAGS.minimal_non_null_threshold))
-      if not FLAGS.verbose:
-        continue
-      pred_min_start = pred.minimal_answer_span.start_byte_offset
-      pred_min_end = pred.minimal_answer_span.end_byte_offset
-      gold_min_start = gold[0].minimal_answer_span.start_byte_offset
-      gold_min_end = gold[0].minimal_answer_span.end_byte_offset
-      if gold_min_start >= 0:
-        logging.info('---')
-        logging.info(gold[0].example_id)
-        logging.info(gold[0].question_text)
-        logging.info('gold offsets %d, %d', gold_min_start, gold_min_end)
-        logging.info('pred offsets %d, %d', pred_min_start, pred_min_end)
-        logging.info(
-            'gold answer: (%s)',
-            byte_slice(gold[0].plaintext, gold_min_start, gold_min_end))
-        logging.info(
-            'pred answer: (%s)',
-            byte_slice(gold[0].plaintext, pred_min_start, pred_min_end))
-        logging.info('score %.2f', minimal_answer_stats[-1][-1])
-        logging.info('f1: %.2f, p: %.2f, r: %.2f',
-                     minimal_answer_stats[-1][-2][2],
-                     minimal_answer_stats[-1][-2][0],
-                     minimal_answer_stats[-1][-2][1])
+    example_count += 1
+    gold = gold_annotation_dict[example_id]
+    pred = pred_dict.get(example_id)
+    passage_answer_stats.append(
+        score_passage_answer(gold, pred, FLAGS.passage_non_null_threshold))
+    minimal_answer_stats.append(
+        score_minimal_answer(gold, pred, FLAGS.minimal_non_null_threshold))
+
+    if not FLAGS.verbose:
+      continue
+    if pred is None:
+      continue
+    pred_min_start = pred.minimal_answer_span.start_byte_offset
+    pred_min_end = pred.minimal_answer_span.end_byte_offset
+    gold_min_start = gold[0].minimal_answer_span.start_byte_offset
+    gold_min_end = gold[0].minimal_answer_span.end_byte_offset
+    if gold_min_start >= 0:
+      logging.info('---')
+      logging.info(gold[0].example_id)
+      logging.info(gold[0].question_text)
+      logging.info('gold offsets %d, %d', gold_min_start, gold_min_end)
+      logging.info('pred offsets %d, %d', pred_min_start, pred_min_end)
+      logging.info('gold answer: (%s)',
+                   byte_slice(gold[0].plaintext, gold_min_start, gold_min_end))
+      logging.info('pred answer: (%s)',
+                   byte_slice(pred.plaintext, pred_min_start, pred_min_end))
+      logging.info('score %.2f', minimal_answer_stats[-1][-1])
+      logging.info('f1: %.2f, p: %.2f, r: %.2f',
+                   minimal_answer_stats[-1][-2][2],
+                   minimal_answer_stats[-1][-2][0],
+                   minimal_answer_stats[-1][-2][1])
   # use the 'score' column, which is last
   passage_answer_stats.sort(key=lambda x: x[-1], reverse=True)
   minimal_answer_stats.sort(key=lambda x: x[-1], reverse=True)
@@ -441,14 +451,14 @@ def get_metrics_as_dict(gold_path, prediction_path):
 
   Arguments:
     gold_path: Path to a single JSONL data. Could be gzipped or not.
-    prediction_path: Path to the JSON prediction data.
+    prediction_path: Path to the JSONL file of prediction data.
 
   Returns:
     metrics: A dictionary mapping string names to metric scores.
   """
 
   tydi_gold_dict = eval_utils.read_annotation(gold_path)
-  tydi_pred_dict = eval_utils.read_prediction_json(prediction_path)
+  tydi_pred_dict = eval_utils.read_prediction_jsonl(prediction_path)
 
   passage_answer_stats, minimal_answer_stats = score_answers(
       tydi_gold_dict, tydi_pred_dict)
@@ -507,9 +517,9 @@ def main(_):
         ans, FLAGS.minimal_non_null_threshold)
     total_ans_count += gold_has_answer
 
-  logging.info('%d has minimal answer', total_ans_count)
+  logging.info('%d examples have minimal answers', total_ans_count)
   logging.info('*' * 40)
-  tydi_pred_dict = eval_utils.read_prediction_json(FLAGS.predictions_path)
+  tydi_pred_dict = eval_utils.read_prediction_jsonl(FLAGS.predictions_path)
 
   per_lang_gold = {}
   per_lang_pred = {}
@@ -535,7 +545,7 @@ def main(_):
   for lang in language_list:
     if lang in per_lang_pred:
       passage_answer_stats, minimal_answer_stats = score_answers(
-          per_lang_gold[lang], per_lang_pred[lang])
+          per_lang_gold.get(lang, {}), per_lang_pred[lang])
 
       # Passage selection task
       opt_result, _ = compute_pr_curves(passage_answer_stats, targets=[0.5])
@@ -559,7 +569,7 @@ def main(_):
       if FLAGS.pretty_print:
         print('*' * 20)
         print(lang)
-        print('Language: %s (%d)' % (lang, len(per_lang_gold[lang])))
+        print('Language: %s (%d)' % (lang, len(per_lang_gold.get(lang, {}))))
         print('*' * 20)
         print('PASSAGE ANSWER R@P TABLE:')
         print_r_at_p_table(passage_answer_stats)

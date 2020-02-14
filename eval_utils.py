@@ -213,22 +213,24 @@ def gold_has_passage_answer(gold_label_list, passage_non_null_threshold):
   return gold_has_answer
 
 
-def read_prediction_json(predictions_path):
-  """Read the prediction json with scores.
+def read_prediction_jsonl(predictions_path):
+  """Read the prediction jsonl file with scores.
 
   Args:
-    predictions_path: the path for the prediction json.
+    predictions_path: the path for the jsonl prediction file.
 
   Returns:
     A dictionary with key = example_id, value = TyDiLabel.
 
   """
   logging.info('Reading predictions from file: %s', format(predictions_path))
+  predictions = []
   with open(predictions_path, 'r') as f:
-    predictions = json.loads(f.read())
+    for line in f:
+      predictions.append(json.loads(line))
 
   tydi_pred_dict = {}
-  for single_prediction in predictions['predictions']:
+  for single_prediction in predictions:
 
     if 'passage_answer_index' in single_prediction:
       passage_answer_index = single_prediction['passage_answer_index']

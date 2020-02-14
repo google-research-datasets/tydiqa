@@ -26,10 +26,10 @@ python3 "${TYDIQA_REPO_DIR}/gold_passage_baseline/split_predictions.py" \
   --lang_output_json_pattern='tydiqa-goldp-dev-predictions-%s.json'
 
 for lang in english arabic bengali finnish indonesian swahili korean russian telugu; do
-  dataset_file="${TYDIQA_GOLDP_DIR}/${VERSION}/tydiqa-goldp-dev-${VERSION}-${lang}.json"
-  predict_file="${working_dir}/tydiqa-goldp-dev-predicions-${lang}.json"
+  dataset_file="${TYDIQA_GOLDP_DIR}/${TYDIQA_VERSION}/tydiqa-goldp-dev-${TYDIQA_VERSION}-${lang}.json"
+  predict_file="${working_dir}/tydiqa-goldp-dev-predictions-${lang}.json"
   echo "Language: ${lang}"
-  eval "${EVAL_SCRIPT}" "${dataset_file}" "${predict_file}"
+  python3 "${EVAL_SCRIPT}" "${dataset_file}" "${predict_file}"
 done
 
 echo "To obtain an overall score, average all *non-English* languages."

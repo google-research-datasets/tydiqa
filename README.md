@@ -19,7 +19,7 @@ language without the use of translation (unlike MLQA and XQuAD).
 
 To see some examples from the dataset with linguistic glosses or for information
 on TyDi QA's leaderboard, see the
-[website](https://google-research-datasets.github.io/tydiqa).
+[website](https://ai.google.com/research/tydiqa).
 
 For a full description of the dataset, how it was collected, and the quality
 measurements for the baseline system, see the
@@ -96,9 +96,9 @@ makes it easier to run inference on the entire dev set in a single invocation.
 ## Primary Tasks (TyDiQA-SelectP and TyDiQA-MinSpan)
 
 We provide a baseline system based on multilingual BERT in this repo. Please see
-[baseline/README.md](baseline/README.md) for details on running and modifying
-that system. You may also find this code useful even if you plan to build a
-system from scratch as it is designed to be easily re-used.
+[baseline/README.md](baseline) for details on running and modifying that system.
+You may also find this code useful even if you plan to build a system from
+scratch as it is designed to be easily re-used.
 
 ## Gold Passage Task (TyDiQA-GoldP)
 
@@ -107,7 +107,7 @@ SQuAD 1.1 setting, it can generally be swapped into any code that accepts SQuAD
 1.1 JSON inputs by simply changing a few file paths in your code. We provide an
 example of doing exactly this with the original/unmodified multilingual BERT
 reference implementation. See
-[gold_passage_baseline/README.md](gold_passage_baseline/README.md) for details.
+[gold_passage_baseline/README.md](gold_passage_baseline) for details.
 
 # Evaluation
 
@@ -117,8 +117,8 @@ The predictions can be evaluated using a command like the following:
 
 ```
 python3 tydi_eval.py \
-  --gold_path=small_gold_annotation.jsonl \
-  --predictions_path=sample_prediction.json
+  --gold_path=tydiqa-v1.0-dev.jsonl.gz \
+  --predictions_path=your_model_predictions.jsonl
 ```
 
 This script computes language-wise F1 scores and then averages over languages,
@@ -139,7 +139,7 @@ evaluation is in
 ```
 cd gold_passage_baseline
 vim eval_gold_passage_baseline.sh  # Edit path to `TYDIQA_GOLDP_DIR`
-./eval_gold_passage_baseline.sh predictions.json /tmp
+./eval_gold_passage_baseline.sh predictions.jsonl /tmp
 ```
 
 Note that for dev and test evaluation, each language is evaluated separately and
@@ -149,9 +149,8 @@ the overall score is the average over languages, excluding English.
 
 In addition to reporting results on the dev set in your own research articles,
 we also encourage you to submit to our
-[public leaderboard](https://google-research-datasets.github.io/tydiqa), to
-create a record of your experiments. We believe leaderboard submissions serve
-two main purposes:
+[public leaderboard](https://ai.google.com/research/tydiqa), to create a record
+of your experiments. We believe leaderboard submissions serve two main purposes:
 
 (a) to create an existence proof that such a result is **possible** under
 carefully isolated conditions (i.e. cheating, intentional or accidental is

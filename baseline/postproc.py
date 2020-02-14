@@ -79,11 +79,19 @@ def compute_predictions(eval_example, candidate_beam):
   n_best_size = candidate_beam
   max_answer_length = 100
 
-  assert eval_example.results
-  assert len(eval_example.features) == len(eval_example.results)
+  if not eval_example.results:
+    return None
+  if len(eval_example.features) != len(eval_example.results):
+    logging.warning(
+        "ERROR: len(features)=%s, but len(results)=%d for eval_example %s",
+        len(eval_example.features), len(eval_example.results),
+        eval_example.example_id)
+    return None
+
   for unique_id, result in eval_example.results.items():
     if unique_id not in eval_example.features:
-      raise ValueError("No feature found with unique_id:", unique_id)
+      logging.warning("No feature found with unique_id: %s", unique_id)
+      return None
 
     wp_start_offset = (
         eval_example.features[unique_id]["wp_start_offset"].int64_list.value)
@@ -122,23 +130,24 @@ def compute_predictions(eval_example, candidate_beam):
         predictions.append(
             (score, summary, language_name, start_offset, end_offset))
 
-  minimal_span = Span(-1, -1)
-
   if not predictions:
     logging.warning("No predictions for eval_example %s",
                     eval_example.example_id)
     return None
 
-  score, summary, language_name, start_span, end_span = sorted(
-      predictions, key=lambda x: x[0], reverse=True)[0]
+  score, summary, language_name, start_span, end_span = max(
+      predictions, key=lambda x: x[0])
   minimal_span = Span(start_span, end_span)
-  passage_span_index = None
+  passage_span_index = 0
   for c_ind, c in enumerate(eval_example.candidates):
     start = minimal_span.start_byte_offset
     end = minimal_span.end_byte_offset
     if c["plaintext_start_byte"] <= start and c["plaintext_end_byte"] >= end:
       passage_span_index = c_ind
       break
+  else:
+    logging.warning("No passage predicted for eval_example %s. Choosing first.",
+                    eval_example.example_id)
   summary.predicted_label = {
       "example_id": eval_example.example_id,
       "language": language_name,
@@ -151,10 +160,6 @@ def compute_predictions(eval_example, candidate_beam):
       "minimal_answer_score": score,
       "yes_no_answer": "NONE"
   }
-  if passage_span_index is None:
-    logging.warning("No passage predicted for eval_example %s",
-                    eval_example.example_id)
-    return None
   return summary
 
 
@@ -208,6 +213,8 @@ def compute_pred_dict(candidates_dict, dev_features, raw_results,
   Returns:
     A dictionary containing predictions.
   """
+  logging.info("Post-processing predictions started.")
+
   raw_results_by_id = [(int(res["unique_id"] + 1), res) for res in raw_results]
   # Cast example id to int32 for each example, similarly to the raw results.
   sess = tf.Session()
@@ -230,7 +237,6 @@ def compute_pred_dict(candidates_dict, dev_features, raw_results,
       key=lambda pair: pair[0])
 
   # Error counters
-  num_missing_passage_predictions = 0
   num_failed_matches = 0
 
   ex_count = 0
@@ -268,25 +274,22 @@ def compute_pred_dict(candidates_dict, dev_features, raw_results,
         continue
       eval_examples[-1].results[feature_unique_id] = datum
 
-  logging.info("Num of examples, features, results: %d %d %d %d", ex_count,
-               feature_count, result_count, len(merged))
+  logging.info("  Num candidate examples found: %d", ex_count)
+  logging.info("  Num candidate features found: %d", feature_count)
+  logging.info("  Num results found: %d", result_count)
+  logging.info("  len(merged): %d", len(merged))
+  if num_failed_matches > 0:
+    logging.warning("  Num failed matches: %d", num_failed_matches)
+
   # Construct prediction objects.
-  logging.info("Computing predictions...")
-  logging.info("Number of eval_examples: %d", len(eval_examples))
-
   tydi_pred_dict = {}
-  for eval_example in eval_examples:
+  for i, eval_example in enumerate(eval_examples):
+    if i % 10000 == 0:
+      logging.info("  Computing predictions for input example: %d/%d", i,
+                   len(eval_examples))
+
     summary = compute_predictions(eval_example, candidate_beam)
-    if summary is None:
-      # Just guess the first passage if no passage was predicted.
-      tydi_pred_dict[eval_example.example_id] = 0
-      num_missing_passage_predictions += 1
-    else:
+    if summary is not None:
       tydi_pred_dict[eval_example.example_id] = summary.predicted_label
-
-    if len(tydi_pred_dict) % 100 == 0:
-      logging.info("Examples processed: %d", len(tydi_pred_dict))
-
-  logging.info("Done computing predictions.")
 
   return tydi_pred_dict

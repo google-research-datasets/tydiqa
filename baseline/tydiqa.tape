@@ -90,7 +90,7 @@ task predict : tydiqa
   < dev_jsonl=$dev@download
   < tfrecord=@prepare_dev
   < checkpoint=@train
-  > predictions="pred.json"
+  > predictions="pred.jsonl"
 {
   python3 "${tydiqa}/baseline/run_tydi.py" \
     --bert_config_file="${mbert}/bert_config.json" \

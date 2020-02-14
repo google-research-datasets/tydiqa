@@ -19,6 +19,7 @@ This module is a fairly thin wrapper over the BERT reference implementation.
 
 import collections
 
+from absl import logging
 from bert import modeling as bert_modeling
 from bert import optimization as bert_optimization
 import tensorflow.compat.v1 as tf
@@ -95,9 +96,9 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
   def model_fn(features, labels, mode, params):  # pylint: disable=unused-argument
     """The `model_fn` for TPUEstimator."""
 
-    tf.logging.info("*** Features ***")
+    logging.info("*** Features ***")
     for name in sorted(features.keys()):
-      tf.logging.info("  name = %s, shape = %s" % (name, features[name].shape))
+      logging.info("  name = %s, shape = %s", name, features[name].shape)
 
     unique_ids = features["unique_ids"]
     input_ids = features["input_ids"]
@@ -132,13 +133,13 @@ def model_fn_builder(bert_config, init_checkpoint, learning_rate,
       else:
         tf.train.init_from_checkpoint(init_checkpoint, assignment_map)
 
-    tf.logging.info("**** Trainable Variables ****")
+    logging.info("**** Trainable Variables ****")
     for var in tvars:
       init_string = ""
       if var.name in initialized_variable_names:
         init_string = ", *INIT_FROM_CKPT*"
-      tf.logging.info("  name = %s, shape = %s%s", var.name, var.shape,
-                      init_string)
+      logging.info("  name = %s, shape = %s%s", var.name, var.shape,
+                   init_string)
 
     output_spec = None
     if mode == tf.estimator.ModeKeys.TRAIN:
