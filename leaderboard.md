@@ -53,8 +53,8 @@ Prerequesites:
   image for your model.
 * Authenticate to GCloud with `gcloud auth login`.
 
-First, assume you have a directory called [`baseline`](baseline) that contains
-(at least) the following files:
+First, let's assume you have a directory called [`baseline`](baseline) that
+contains (at least) the following files:
 
 ```bash
 $ ls baseline/
@@ -108,7 +108,8 @@ It will be called with two arguments:
   of predictions that will be subsequently passed to the evaluation script,
   [tydi_eval.py](tydi_eval.py).
   See the [tydi_eval.py](tydi_eval.py) source code for a complete description
-  of the expected prediction format.
+  of the expected prediction format, or see
+  [sample_prediction.jsonl](sample_prediction.jsonl) as an example.
 
 ```shell
 #!/bin/bash
@@ -175,11 +176,13 @@ Visit the
 [TyDi QA submission page](https://ai.google.com/research/tydiqa/participate)
 and use the "Submit an Attempt" form to submit a "Test attempt".
 The "Google Container Registry image name" will be the name you used above,
-`gcr.io/my-project-1234/your-tydiqa-submission`. The "Dashboard" on the same
-page should show your attempt.  The "Status" column will say "pending" while
-the system is running, and will change to "success" or "error" when it ends.
+`gcr.io/my-project-1234/your-tydiqa-submission`. After you submit the form,
+reload the page to see your attempt appear in your "Dashboard". The "Status"
+column will say "pending" while the system is running, and will change to
+either "success" or "error" when it ends.
 
 Once you confirm that your "Test attempt" is successful, you can submit an
 "Offical attempt" using the same form.
 Remember that each team is only allowed to submit one "Official attempt" per
-week to the, but you may submit as many "Test attempts" as you like.
+week to the leaderboard system, but you may submit as many "Test attempts" as
+you like.
