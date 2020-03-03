@@ -75,16 +75,16 @@ the following URLs.
 
 For the primary tasks:
 
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz)
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz)
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz)  
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz)  
 
 The primary task training set is about 1.6GB while the dev set is about 150MB.
 
 For the gold passage task:
 
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json)
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json)
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz)
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json)  
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json)  
+[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz)  
 
 The gold passage training set is about 50MB and the dev set is about 10MB. The
 extra tarball for the dev set contains JSON files that are split along language
