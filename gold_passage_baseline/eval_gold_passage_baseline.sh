@@ -18,7 +18,7 @@ TYDIQA_REPO_DIR=$PWD/..
 # IMPORTANT: Please report this task name in your results tables as
 # 'TyDiQA-GoldP' to avoid confusing it with the primary tasks.
 TYDIQA_GOLDP_DIR=$HOME/tydiqa_goldp
-TYDIQA_VERSION="1.0b"
+TYDIQA_VERSION="1.1"
 
 python3 "${TYDIQA_REPO_DIR}/gold_passage_baseline/split_predictions.py" \
   --input_json="${predictions_in}" \
@@ -29,7 +29,10 @@ for lang in english arabic bengali finnish indonesian swahili korean russian tel
   dataset_file="${TYDIQA_GOLDP_DIR}/${TYDIQA_VERSION}/tydiqa-goldp-dev-${TYDIQA_VERSION}-${lang}.json"
   predict_file="${working_dir}/tydiqa-goldp-dev-predictions-${lang}.json"
   echo "Language: ${lang}"
-  python3 "${EVAL_SCRIPT}" "${dataset_file}" "${predict_file}"
+
+  python "${EVAL_SCRIPT}" "${dataset_file}" "${predict_file}"
 done
 
 echo "To obtain an overall score, average all *non-English* languages."
+echo
+echo "**When reporting results, please include the label 'TyDiQA-GoldP' in your results table to avoid confusion with TyDi QA's primary tasks.**"

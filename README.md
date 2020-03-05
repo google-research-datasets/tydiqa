@@ -1,8 +1,18 @@
 # TyDi QA: A Benchmark for Information-Seeking Question Answering in Typologically Diverse Languages
 
+[**Tasks**](#the-tasks) | [**Download**](#download-the-dataset) |
+[**Baselines**](#building-a-baseline-system) | [**Evaluation**](#evaluation) |
+[**Leaderboard**](#leaderboard-submissions) |
+[**Website/Glosses**](https://ai.google.com/research/tydiqa) |
+[**Paper**](https://storage.googleapis.com/tydiqa/tydiqa.pdf) |
+[**Changelog**](CHANGELOG.md)
+
 This repository contains information about TyDi QA, code for evaluating results
 on the dataset, implementations of baseline systems for the dataset, and some
 advice for working with the dataset.
+
+Want to keep up to date on updates and new releases? Join our low-traffic
+[announcement email list](https://groups.google.com/forum/#!forum/tydiqa-announce).
 
 # Introduction
 
@@ -23,7 +33,7 @@ on TyDi QA's leaderboard, see the
 
 For a full description of the dataset, how it was collected, and the quality
 measurements for the baseline system, see the
-[TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf).
+[TACL article](https://storage.googleapis.com/tydiqa/tydiqa.pdf).
 
 # The Tasks
 
@@ -75,16 +85,16 @@ the following URLs.
 
 For the primary tasks:
 
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz)  
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz)  
+*   [https://storage.googleapis.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz](https://storage.googleapis.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz)
+*   [https://storage.googleapis.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz](https://storage.googleapis.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz)
 
 The primary task training set is about 1.6GB while the dev set is about 150MB.
 
 For the gold passage task:
 
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.json)  
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-train.json)  
-[https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz](https://storage.cloud.google.com/tydiqa/v1.0/tydiqa-goldp-v1.0-dev.tgz)  
+*   [https://storage.googleapis.com/tydiqa/v1.1/tydiqa-goldp-v1.1-dev.json](https://storage.googleapis.com/tydiqa/v1.1/tydiqa-goldp-v1.1-dev.json)
+*   [https://storage.googleapis.com/tydiqa/v1.1/tydiqa-goldp-v1.1-train.json](https://storage.googleapis.com/tydiqa/v1.1/tydiqa-goldp-v1.1-train.json)
+*   [https://storage.googleapis.com/tydiqa/v1.1/tydiqa-goldp-v1.1-dev.tgz](https://storage.googleapis.com/tydiqa/v1.1/tydiqa-goldp-v1.1-dev.tgz)
 
 The gold passage training set is about 50MB and the dev set is about 10MB. The
 extra tarball for the dev set contains JSON files that are split along language
@@ -191,10 +201,29 @@ linguists and/or native speakers of these languages to create glosses that
 explain how your model is interacting with language. See the TACL article for
 examples of glossed examples with explanations (Figures 2 - 7).
 
+# Source Data
+
+The articles for TyDi QA are drawn from single coherent snapshots of Wikipedia
+from the Internet Archive to enable open-retrieval experiments. You can download
+the original article data in Wikitext format from the following URLS:
+
+*   https://archive.org/download/arwiki-20190201/arwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/bnwiki-20190201/bnwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/enwiki-20190201/enwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/fiwiki-20190201/fiwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/idwiki-20190201/idwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/jawiki-20190201/jawiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/kowiki-20190201/kowiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/ruwiki-20190201/ruwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/tewiki-20190201/tewiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/tlwiki-20190201/tlwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/swwiki-20190201/swwiki-20190201-pages-articles-multistream.xml.bz2
+*   https://archive.org/download/thwiki-20190101/thwiki-20190101-pages-articles-multistream.xml.bz2
+
 # Citation
 
 Please cite the
-[TyDi QA TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf) as:
+[TyDi QA TACL article](https://storage.googleapis.com/tydiqa/tydiqa.pdf) as:
 
 ```
 @article{tydiqa,

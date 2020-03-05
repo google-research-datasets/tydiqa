@@ -61,5 +61,5 @@ journal = {Transactions of the Association for Computational Linguistics}
 ```
 
 Information specific to the Gold Passage task can be found in Section 8 of the
-[TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf); the prior
+[TACL article](https://storage.googleapis.com/tydiqa/tydiqa.pdf); the prior
 sections of the paper describe the primary tasks (not the Gold Passage task).

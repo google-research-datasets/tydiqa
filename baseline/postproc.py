@@ -222,6 +222,8 @@ def compute_pred_dict(candidates_dict, dev_features, raw_results,
   example_ids = tf.to_int32(np.array([int(k) for k, _ in all_candidates
                                      ])).eval(session=sess)
   examples_by_id = list(zip(example_ids, all_candidates))
+  if not examples_by_id:
+    raise ValueError("No examples candidates found.")
   feature_ids = []
   features = []
   for f in dev_features:

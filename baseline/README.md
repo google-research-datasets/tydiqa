@@ -6,7 +6,7 @@ TyDi QA.
 The approach is nearly identical to the BERT baseline for the Natural Questions
 as described in [https://arxiv.org/abs/1901.08634]. Initial quality measurements
 for this system on TyDi QA are given in the
-[TACL article](https://storage.cloud.google.com/tydiqa/tydiqa.pdf).
+[TACL article](https://storage.googleapis.com/tydiqa/tydiqa.pdf).
 
 ## Hardware Requirements
 

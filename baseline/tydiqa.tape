@@ -9,7 +9,7 @@
 # One Unix Command.
 #
 # To use this script:
-# 1. Install dependencies (ducttape, Python3, TensorFlow, gsutil)
+# 1. Install dependencies (ducttape, Python3, TensorFlow)
 # 2. Run `./tydiqa.tape`.
 # 3. Wait awhile.
 #
@@ -20,9 +20,6 @@
 # And Python3 + Tensorflow:
 # sudo apt install python3-dev python3-pip
 # pip3 install --upgrade tensorflow-gpu
-#
-# And gsutil for downloading from Google Cloud storage via the command line:
-# https://cloud.google.com/storage/docs/gsutil_install#deb
 
 global {
   ducttape_experimental_packages=true
@@ -39,8 +36,8 @@ task download
   > dev="tydiqa-v1.0-dev.jsonl.gz"
   > mbert="multi_cased_L-12_H-768_A-12"
 {
-  gsutil -m cp -R "gs://tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz" .
-  gsutil -m cp -R "gs://tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz" .
+  wget "https://storage.googleapis.com/tydiqa/v1.0/tydiqa-v1.0-dev.jsonl.gz" .
+  wget "https://storage.googleapis.com/tydiqa/v1.0/tydiqa-v1.0-train.jsonl.gz" .
   wget "https://storage.googleapis.com/bert_models/2018_11_23/multi_cased_L-12_H-768_A-12.zip"
   unzip "multi_cased_L-12_H-768_A-12.zip"
 }

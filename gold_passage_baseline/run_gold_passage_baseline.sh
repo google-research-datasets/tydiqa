@@ -27,7 +27,7 @@ MBERT_MODEL_DIR="${HOME}/multi_cased_L-12_H-768_A-12"
 # IMPORTANT: Please report this task name in your results tables as
 # 'TyDiQA-GoldP' to avoid confusing it with the primary tasks.
 TYDIQA_GOLDP_DIR="${HOME}/tydiqa_goldp"
-VERSION="v1.0b"
+VERSION="v1.1"
 
 python $BERT_CODE_DIR/run_squad.py \
   --vocab_file="${MBERT_MODEL_DIR}/vocab.txt" \
