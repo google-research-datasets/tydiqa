@@ -5,6 +5,7 @@
 [**Leaderboard**](#leaderboard-submissions) |
 [**Website/Glosses**](https://ai.google.com/research/tydiqa) |
 [**Paper**](https://storage.googleapis.com/tydiqa/tydiqa.pdf) |
+[**Slides**](https://storage.googleapis.com/tydiqa/tydiqa_slides_stanford.pdf) |
 [**Changelog**](CHANGELOG.md)
 
 This repository contains information about TyDi QA, code for evaluating results
