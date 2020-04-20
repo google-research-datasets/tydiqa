@@ -71,6 +71,7 @@ python3 prepare_tydi_data.py \
   --output_tfrecord=train_samples.tfrecord \
   --vocab_file=mbert_modified_vocab.txt \
   --record_count_file=train_samples_record_count.txt \
+  --include_unknowns=0.1 \
   --is_training=true
 ```
 
