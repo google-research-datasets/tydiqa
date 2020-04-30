@@ -6,7 +6,7 @@
 [**Website/Glosses**](https://ai.google.com/research/tydiqa) |
 [**Paper**](https://storage.googleapis.com/tydiqa/tydiqa.pdf) |
 [**Slides**](https://storage.googleapis.com/tydiqa/tydiqa_slides_stanford.pdf) |
-[**Changelog**](CHANGELOG.md)
+[**Podcast**](#podcast) | [**Changelog**](CHANGELOG.md)
 
 This repository contains information about TyDi QA, code for evaluating results
 on the dataset, implementations of baseline systems for the dataset, and some
@@ -220,6 +220,11 @@ the original article data in Wikitext format from the following URLS:
 *   https://archive.org/download/tlwiki-20190201/tlwiki-20190201-pages-articles-multistream.xml.bz2
 *   https://archive.org/download/swwiki-20190201/swwiki-20190201-pages-articles-multistream.xml.bz2
 *   https://archive.org/download/thwiki-20190101/thwiki-20190101-pages-articles-multistream.xml.bz2
+
+# Podcast
+
+We spoke with AI2's NLP Highlights Podcast about TyDi QA. Have a listen on
+[https://soundcloud.com/nlp-highlights/111-typologically-diverse-multi-lingual-information-seeking-questions-with-jon-clark](SoundCloud).
 
 # Citation
 
