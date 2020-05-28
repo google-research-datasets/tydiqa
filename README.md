@@ -224,7 +224,7 @@ the original article data in Wikitext format from the following URLS:
 # Podcast
 
 We spoke with AI2's NLP Highlights Podcast about TyDi QA. Have a listen on
-[https://soundcloud.com/nlp-highlights/111-typologically-diverse-multi-lingual-information-seeking-questions-with-jon-clark](SoundCloud).
+[SoundCloud](https://soundcloud.com/nlp-highlights/111-typologically-diverse-multi-lingual-information-seeking-questions-with-jon-clark).
 
 # Citation
 
